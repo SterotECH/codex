@@ -53,6 +53,75 @@ function chatStripe(isAI, value, uniqueId) {
     `;
 }
 
+//Function to save a question and response from a chatbot to local storage
+function saveChatbotData(question, response) {
+  //Create an object with the question and response
+  const chatbotData = {
+    question: question,
+    response: response,
+  };
+
+  //Check if there is already data in local storage
+  let existingData = localStorage.getItem('chatbotData');
+
+  //If there is existing data, parse it into an array of objects
+  if (existingData) {
+    existingData = JSON.parse(existingData);
+
+    //Push the new data into the array of objects
+    existingData.push(chatbotData);
+
+    //Stringify the array of objects and save it back to local storage
+    localStorage.setItem('chatbotData', JSON.stringify(existingData));
+  } else {
+    //If there is no existing data, create an array with the new data and save it to local storage
+
+    const newChatbotData = [chatbotData];
+
+    localStorage.setItem('chatbotData', JSON.stringify(newChatbotData));
+  }
+}
+
+//Function to load the saved chatbot data from local storage to the UI
+function loadChatbotData() {
+  //Retrieve the saved chatbot data from local storage as a stringified array of objects
+  const savedChatbotData = JSON.parse(localStorage.getItem('chatbotData'));
+
+  //Loop through each object in the array and add it to the UI
+  for (let i = 0; i < savedChatbotData.length; i++) {
+    const questionElement = document.createElement('p'); //Create a <p> element for each question
+    questionElement.innerText = savedChatbotData[i].question; //Set its text content to be the current object's question
+
+    const responseElement = document.createElement('p'); //Create a <p> element for each response
+    responseElement.innerText = savedChatbotData[i].response; //Set its text content to be the current object's response
+
+    document.body.appendChild(questionElement); //Append both elements to the body of the page
+    document.body.appendChild(responseElement);
+  }
+}
+
+function formatCode(text) {
+  // Split the text into an array of lines
+  let lines = text.split('\n');
+
+  // Create a new array to store the formatted lines
+  let formattedLines = [];
+
+  // Iterate over each line in the original array
+  for (let line of lines) {
+    // Trim any whitespace from the beginning and end of the line
+    let trimmedLine = line.trim();
+
+    // Add two spaces to the beginning of each line
+    let indentedLine = '  ' + trimmedLine;
+
+    // Push the indented line to the new array
+    formattedLines.push(indentedLine);
+  }
+
+  // Join all of the lines in the new array together with a newline character between them
+  return formattedLines.join('\n');
+}
 const handleSubmit = async (e) => {
   e.preventDefault();
 
@@ -89,8 +158,8 @@ const handleSubmit = async (e) => {
   if (response.ok) {
     const data = await response.json();
     const parseData = data.bot.trim();
-
-    typeText(messageDiv, parseData);
+    const text = formatCode(parseData);
+    typeText(messageDiv, text);
   } else {
     const err = await response.text();
 
